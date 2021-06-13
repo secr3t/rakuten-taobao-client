@@ -12,9 +12,10 @@ type SearchParam struct {
 	EndPrice   int
 	Sort       string
 	PageSize   int
+	CatId      int
 }
 
-func NewSearchParam(q, sort string, page, pageSize, startPrice, endPrice int) SearchParam {
+func NewSearchParam(q, sort string, page, pageSize, startPrice, endPrice, catId int) SearchParam {
 	return SearchParam{
 		Q:          q,
 		Page:       page,
@@ -22,6 +23,7 @@ func NewSearchParam(q, sort string, page, pageSize, startPrice, endPrice int) Se
 		EndPrice:   endPrice,
 		Sort:       sort,
 		PageSize:   pageSize,
+		CatId:      catId,
 	}
 }
 
@@ -50,6 +52,10 @@ func (p SearchParam) ToQuery() string {
 
 	if p.EndPrice != 0 {
 		query.Add("end_price", strconv.Itoa(p.EndPrice))
+	}
+
+	if p.CatId != 0 {
+		query.Add("cat", strconv.Itoa(p.CatId))
 	}
 
 	if p.Sort != "" {
