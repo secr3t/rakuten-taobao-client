@@ -1,8 +1,8 @@
 package client
 
 import (
-	"fmt"
-	"strings"
+	"net/url"
+	"strconv"
 )
 
 type SearchParam struct {
@@ -11,42 +11,50 @@ type SearchParam struct {
 	StartPrice int
 	EndPrice   int
 	Sort       string
+	PageSize   int
 }
 
-func NewSearchParam(q, sort string, page, startPrice, endPrice int) SearchParam {
+func NewSearchParam(q, sort string, page, pageSize, startPrice, endPrice int) SearchParam {
 	return SearchParam{
 		Q:          q,
 		Page:       page,
 		StartPrice: startPrice,
 		EndPrice:   endPrice,
 		Sort:       sort,
+		PageSize:   pageSize,
 	}
 }
 
 func (p SearchParam) ToQuery() string {
-	var b strings.Builder
+	query := url.Values{}
 
-	b.WriteString(fmt.Sprintf("q=%s", p.Q))
+	query.Add("q", p.Q)
+
+	if p.PageSize == 0 {
+		p.PageSize = 40
+	}
+
+	if p.PageSize > 100 {
+		p.PageSize = 100
+	}
+
+	query.Add("page_size", strconv.Itoa(p.PageSize))
 
 	if p.Page != 0 {
-		b.WriteString("&")
-		b.WriteString(fmt.Sprintf("page=%d", p.Page))
+		query.Add("page", strconv.Itoa(p.Page))
 	}
 
 	if p.StartPrice != 0 {
-		b.WriteString("&")
-		b.WriteString(fmt.Sprintf("start_price=%d", p.StartPrice))
+		query.Add("start_price", strconv.Itoa(p.StartPrice))
 	}
 
 	if p.EndPrice != 0 {
-		b.WriteString("&")
-		b.WriteString(fmt.Sprintf("end_price=%d", p.EndPrice))
+		query.Add("end_price", strconv.Itoa(p.EndPrice))
 	}
 
 	if p.Sort != "" {
-		b.WriteString("&")
-		b.WriteString(fmt.Sprintf("sort=%s", p.Sort))
+		query.Add("sort", p.Sort)
 	}
 
-	return b.String()
+	return query.Encode()
 }

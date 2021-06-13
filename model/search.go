@@ -5,6 +5,7 @@ type Search struct {
 		Item         []SearchItem `json:"item"`
 		TotalResults int          `json:"total_results"`
 		Status       SearchStatus `json:"status"`
+		PageSize     string       `json:"page_size"`
 	} `json:"result"`
 }
 

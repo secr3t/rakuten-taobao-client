@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/secr3t/rakuten-taobao-client/model"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -41,6 +42,9 @@ func (c *DetailClient) GetDetail(numiid int64) model.Detail {
 
 	json.Unmarshal(body, &detail)
 
-	fmt.Println(string(body))
+	if !detail.IsSuccess() {
+		log.Printf("GetDetail Failed num_iid = %d, response = %s", numiid, string(body))
+	}
+
 	return detail
 }

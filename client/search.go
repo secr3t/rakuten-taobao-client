@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/secr3t/rakuten-taobao-client/model"
 	"io/ioutil"
 	"net/http"
@@ -37,8 +36,6 @@ func (c *SearchClient) SearchItems(param SearchParam) model.Search {
 
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
-
-	fmt.Println(string(body))
 
 	var search model.Search
 
