@@ -3,9 +3,9 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/secr3t/rakuten-taobao-client/model"
 	"io/ioutil"
 	"net/http"
-	"rakuten-taobao-client/model"
 )
 
 const (
