@@ -51,8 +51,12 @@ func (c *CompoundClient) SearchAndGetDetails(param *SearchParam) chan model.Deta
 			c.backgroundDetailRequestItems(&wg, nextSearch.Result.Item, detailChan)
 		}
 	}
-	wg.Wait()
-	close(detailChan)
+	defer func() {
+		go func() {
+			wg.Wait()
+			close(detailChan)
+		}()
+	}()
 
 	return detailChan
 }
