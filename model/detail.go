@@ -1,33 +1,45 @@
 package model
 
+import "regexp"
+
+const httpsPrefix = "https:"
+
+var (
+	imgRegex, _ = regexp.Compile(`//img\.alicdn\.com/imgextra/.*\.jpg`)
+)
+
 type Detail struct {
 	Result struct {
-		Item struct {
-			Title    string               `json:"title"`
-			Images   []string             `json:"images"`
-			DescImgs []string             `json:"desc_imgs"`
-			NumIid   string               `json:"num_iid"`
-			Skus     map[string]SkuDetail `json:"skus"`
-			SkuBase  struct {
-				Skus []struct {
-					PropPath string `json:"propPath"`
-					SkuID    string `json:"skuId"`
-				} `json:"skus"`
-				Prop []struct {
-					Values []struct {
-						Vid  string `json:"vid"`
-						Name string `json:"name"`
-						Image string `json:"image"`
-					} `json:"values"`
-					Name string `json:"name"`
-					Pid  string `json:"pid"`
-				} `json:"prop"`
-			} `json:"sku_base"`
-			DescUrl   string `json:"desc_url"`
-			DetailUrl string `json:"detail_url"`
-		} `json:"item"`
+		Item   DetailItem   `json:"item"`
 		Status DetailStatus `json:"status"`
 	} `json:"result"`
+}
+
+type DetailItem struct {
+	Title    string               `json:"title"`
+	Images   []string             `json:"images"`
+	DescImgs []string             `json:"desc_imgs"`
+	NumIid   string               `json:"num_iid"`
+	Skus     map[string]SkuDetail `json:"skus"`
+	SkuBase  struct {
+		Skus []struct {
+			PropPath string `json:"propPath"`
+			SkuID    string `json:"skuId"`
+		} `json:"skus"`
+		Prop []struct {
+			Values []PropValue `json:"values"`
+			Name   string      `json:"name"`
+			Pid    string      `json:"pid"`
+		} `json:"prop"`
+	} `json:"sku_base"`
+	DescUrl   string `json:"desc_url"`
+	DetailUrl string `json:"detail_url"`
+}
+
+type PropValue struct {
+	Vid   string `json:"vid"`
+	Name  string `json:"name"`
+	Image string `json:"image"`
 }
 
 type SkuDetail struct {
@@ -44,4 +56,41 @@ type DetailStatus struct {
 
 func (d Detail) IsSuccess() bool {
 	return d.Result.Status.Msg == "success"
+}
+
+func (i DetailItem) GetImages() []string {
+	var images []string
+	for _, imgUrl := range i.Images {
+		if imgRegex.MatchString(imgUrl) {
+			images = append(images, httpsPrefix+imgUrl)
+		}
+	}
+
+	return images
+}
+
+func (i DetailItem) GetDetailUrl() string {
+	return httpsPrefix + i.DetailUrl
+}
+
+func (i DetailItem) GetDescUrl() string {
+	return httpsPrefix + i.DescUrl
+}
+
+func (i DetailItem) GetDescImgs() []string {
+	var descImgs []string
+
+	for _, descImg := range i.DescImgs {
+		descImgs = append(descImgs, httpsPrefix+descImg)
+	}
+
+	return descImgs
+}
+
+func (v PropValue) GetImage() string {
+	if v.Image == "" {
+		return ""
+	}
+
+	return httpsPrefix + v.Image
 }
