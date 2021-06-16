@@ -17,6 +17,7 @@ type Detail struct {
 					Values []struct {
 						Vid  string `json:"vid"`
 						Name string `json:"name"`
+						Image string `json:"image"`
 					} `json:"values"`
 					Name string `json:"name"`
 					Pid  string `json:"pid"`

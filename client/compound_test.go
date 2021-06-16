@@ -9,7 +9,7 @@ import (
 func TestCompoundClient_SearchAndGetDetails(t *testing.T) {
 	c := NewCompoundClient("", 100)
 
-	p := NewSearchParam("one piece", "", 0, 100, 0, 0)
+	p := NewSearchParam("one piece", "", 0, 100, 0, 0, 0)
 
 	start := time.Now()
 	detailChan := c.SearchAndGetDetails(&p)
