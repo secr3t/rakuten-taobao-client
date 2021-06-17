@@ -32,6 +32,7 @@ func (c *CompoundClient) SearchAndGetDetailsOneReqOneTime(param *SearchParam) ch
 
 	detailChan := make(chan model.Detail, limit)
 
+	wg.Add(1)
 	go func() {
 		if search.IsSuccess() {
 			c.backgroundDetailRequestItemsSequential(&wg, search.Result.Item, detailChan)
@@ -52,6 +53,7 @@ func (c *CompoundClient) SearchAndGetDetailsOneReqOneTime(param *SearchParam) ch
 				c.backgroundDetailRequestItemsSequential(&wg, nextSearch.Result.Item, detailChan)
 			}
 		}
+		wg.Done()
 	}()
 
 	defer func() {
