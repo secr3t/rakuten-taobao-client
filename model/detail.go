@@ -1,6 +1,9 @@
 package model
 
-import "regexp"
+import (
+	"regexp"
+	"strings"
+)
 
 const httpsPrefix = "https:"
 
@@ -62,7 +65,11 @@ func (i DetailItem) GetImages() []string {
 	var images []string
 	for _, imgUrl := range i.Images {
 		if imgRegex.MatchString(imgUrl) {
-			images = append(images, httpsPrefix+imgUrl)
+			if strings.HasPrefix(imgUrl, httpsPrefix) {
+				images = append(images, imgUrl)
+			} else {
+				images = append(images, httpsPrefix+imgUrl)
+			}
 		}
 	}
 
