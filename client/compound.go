@@ -23,7 +23,48 @@ func NewCompoundClient(apiKey string, searchLimit int) *CompoundClient {
 	}
 }
 
-func (c *CompoundClient) SearchAndGetDetails(param *SearchParam) chan model.Detail {
+func (c *CompoundClient) SearchAndGetDetailsOneReqOneTime(param *SearchParam) chan model.Detail {
+	var wg sync.WaitGroup
+	limit := c.SearchLimit
+	sc := NewSearchClient(c.ApiKey)
+
+	search := sc.SearchItems(*param)
+
+	detailChan := make(chan model.Detail, limit)
+
+	go func() {
+		if search.IsSuccess() {
+			c.backgroundDetailRequestItemsSequential(&wg, search.Result.Item, detailChan)
+			if limit > search.Result.TotalResults {
+				limit = search.Result.TotalResults
+			}
+
+			pageSize, _ := strconv.Atoi(search.Result.PageSize)
+			limit -= pageSize
+
+			for ; limit > 0; limit -= pageSize {
+				if param.Page == 0 {
+					param.Page = 2
+				} else {
+					param.Page += 1
+				}
+				nextSearch := sc.SearchItems(*param)
+				c.backgroundDetailRequestItemsSequential(&wg, nextSearch.Result.Item, detailChan)
+			}
+		}
+	}()
+
+	defer func() {
+		go func() {
+			wg.Wait()
+			close(detailChan)
+		}()
+	}()
+
+	return detailChan
+}
+
+func (c *CompoundClient) SearchAndGetDetailsMultiRequestOneTime(param *SearchParam) chan model.Detail {
 	var wg sync.WaitGroup
 	limit := c.SearchLimit
 	sc := NewSearchClient(c.ApiKey)
@@ -59,6 +100,12 @@ func (c *CompoundClient) SearchAndGetDetails(param *SearchParam) chan model.Deta
 	}()
 
 	return detailChan
+}
+
+func (c *CompoundClient) backgroundDetailRequestItemsSequential(wg *sync.WaitGroup, items []model.SearchItem, ch chan model.Detail) {
+	for _, item := range items {
+		c.backgroundDetailRequestItem(wg, item, ch)
+	}
 }
 
 func (c *CompoundClient) backgroundDetailRequestItems(wg *sync.WaitGroup, items []model.SearchItem, ch chan model.Detail) {

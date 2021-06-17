@@ -9,10 +9,10 @@ import (
 func TestCompoundClient_SearchAndGetDetails(t *testing.T) {
 	c := NewCompoundClient("", 100)
 
-	p := NewSearchParam("one piece", "", 0, 100, 0, 0, 0)
+	p := NewSearchParam("T恤男", "", 0, 100, 0, 0, 0)
 
 	start := time.Now()
-	detailChan := c.SearchAndGetDetails(&p)
+	detailChan := c.SearchAndGetDetailsMultiRequestOneTime(&p)
 
 	elapsed := time.Since(start)
 	t.Log(elapsed)
