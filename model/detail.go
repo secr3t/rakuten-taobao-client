@@ -8,7 +8,7 @@ import (
 const httpsPrefix = "https:"
 
 var (
-	imgRegex, _ = regexp.Compile(`//img\.alicdn\.com/imgextra/.*\.jpg`)
+	imgRegex, _ = regexp.Compile(`//.*/imgextra/.*\.jpg`)
 )
 
 type Detail struct {

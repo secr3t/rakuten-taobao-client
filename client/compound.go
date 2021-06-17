@@ -4,6 +4,7 @@ import (
 	"github.com/secr3t/rakuten-taobao-client/model"
 	"strconv"
 	"sync"
+	"time"
 )
 
 const defaultLimit = 400
@@ -68,6 +69,7 @@ func (c *CompoundClient) SearchAndGetDetailsOneReqOneTime(param *SearchParam) ch
 
 func (c *CompoundClient) SearchAndGetDetailsMultiRequestOneTime(param *SearchParam) chan model.Detail {
 	var wg sync.WaitGroup
+	wg.Add(1)
 	limit := c.SearchLimit
 	sc := NewSearchClient(c.ApiKey)
 
@@ -75,25 +77,29 @@ func (c *CompoundClient) SearchAndGetDetailsMultiRequestOneTime(param *SearchPar
 
 	detailChan := make(chan model.Detail, limit)
 
-	if search.IsSuccess() {
-		c.backgroundDetailRequestItems(&wg, search.Result.Item, detailChan)
-		if limit > search.Result.TotalResults {
-			limit = search.Result.TotalResults
-		}
-
-		pageSize, _ := strconv.Atoi(search.Result.PageSize)
-		limit -= pageSize
-
-		for ; limit > 0; limit -= pageSize {
-			if param.Page == 0 {
-				param.Page = 2
-			} else {
-				param.Page += 1
+	go func() {
+		if search.IsSuccess() {
+			c.backgroundDetailRequestItems(&wg, search.Result.Item, detailChan)
+			if limit > search.Result.TotalResults {
+				limit = search.Result.TotalResults
 			}
-			nextSearch := sc.SearchItems(*param)
-			c.backgroundDetailRequestItems(&wg, nextSearch.Result.Item, detailChan)
+
+			pageSize, _ := strconv.Atoi(search.Result.PageSize)
+			limit -= pageSize
+
+			for ; limit > 0; limit -= pageSize {
+				if param.Page == 0 {
+					param.Page = 2
+				} else {
+					param.Page += 1
+				}
+				nextSearch := sc.SearchItems(*param)
+				c.backgroundDetailRequestItems(&wg, nextSearch.Result.Item, detailChan)
+			}
+			wg.Done()
 		}
-	}
+	}()
+
 	defer func() {
 		go func() {
 			wg.Wait()
@@ -112,6 +118,7 @@ func (c *CompoundClient) backgroundDetailRequestItemsSequential(wg *sync.WaitGro
 
 func (c *CompoundClient) backgroundDetailRequestItems(wg *sync.WaitGroup, items []model.SearchItem, ch chan model.Detail) {
 	for _, item := range items {
+		time.Sleep(time.Second)
 		go c.backgroundDetailRequestItem(wg, item, ch)
 	}
 }
