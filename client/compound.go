@@ -10,24 +10,26 @@ import (
 const defaultLimit = 400
 
 type CompoundClient struct {
-	ApiKey      string
-	SearchLimit int
+	ListApiKey   string
+	DetailApiKey string
+	SearchLimit  int
 }
 
-func NewCompoundClient(apiKey string, searchLimit int) *CompoundClient {
+func NewCompoundClient(listApiKey string, detailApiKey string, searchLimit int) *CompoundClient {
 	if searchLimit > defaultLimit {
 		searchLimit = defaultLimit
 	}
 	return &CompoundClient{
-		ApiKey:      apiKey,
-		SearchLimit: searchLimit,
+		ListApiKey:   listApiKey,
+		DetailApiKey: detailApiKey,
+		SearchLimit:  searchLimit,
 	}
 }
 
 func (c *CompoundClient) SearchAndGetDetailsOneReqOneTime(param *SearchParam) chan model.Detail {
 	var wg sync.WaitGroup
 	limit := c.SearchLimit
-	sc := NewSearchClient(c.ApiKey)
+	sc := NewSearchClient(c.ListApiKey)
 
 	search := sc.SearchItems(*param)
 
@@ -71,7 +73,7 @@ func (c *CompoundClient) SearchAndGetDetailsMultiRequestOneTime(param *SearchPar
 	var wg sync.WaitGroup
 	wg.Add(1)
 	limit := c.SearchLimit
-	sc := NewSearchClient(c.ApiKey)
+	sc := NewSearchClient(c.ListApiKey)
 
 	search := sc.SearchItems(*param)
 
@@ -126,7 +128,7 @@ func (c *CompoundClient) backgroundDetailRequestItems(wg *sync.WaitGroup, items 
 func (c *CompoundClient) backgroundDetailRequestItem(wg *sync.WaitGroup, item model.SearchItem, ch chan model.Detail) {
 	wg.Add(1)
 
-	dc := NewDetailClient(c.ApiKey)
+	dc := NewDetailClient(c.DetailApiKey)
 
 	detail := dc.GetDetail(item.NumIid)
 
