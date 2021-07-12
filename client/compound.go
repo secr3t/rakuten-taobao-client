@@ -77,29 +77,32 @@ func (c *CompoundClient) SearchAndGetDetailsMultiRequestOneTime(param *SearchPar
 
 	search := sc.SearchItems(*param)
 
+	if !search.IsSuccess() {
+		return nil
+	}
+
 	detailChan := make(chan model.Detail, limit)
 
 	go func() {
-		if search.IsSuccess() {
-			c.backgroundDetailRequestItems(&wg, search.Result.Item, detailChan)
-			if limit > search.Result.TotalResults {
-				limit = search.Result.TotalResults
-			}
-
-			pageSize, _ := strconv.Atoi(search.Result.PageSize)
-			limit -= pageSize
-
-			for ; limit > 0; limit -= pageSize {
-				if param.Page == 0 {
-					param.Page = 2
-				} else {
-					param.Page += 1
-				}
-				nextSearch := sc.SearchItems(*param)
-				c.backgroundDetailRequestItems(&wg, nextSearch.Result.Item, detailChan)
-			}
-			wg.Done()
+		c.backgroundDetailRequestItems(&wg, search.Result.Item, detailChan)
+		if limit > search.Result.TotalResults {
+			limit = search.Result.TotalResults
 		}
+
+		pageSize, _ := strconv.Atoi(search.Result.PageSize)
+		limit -= pageSize
+
+		for ; limit > 0; limit -= pageSize {
+			if param.Page == 0 {
+				param.Page = 2
+			} else {
+				param.Page += 1
+			}
+			nextSearch := sc.SearchItems(*param)
+			c.backgroundDetailRequestItems(&wg, nextSearch.Result.Item, detailChan)
+		}
+		time.Sleep(5 * time.Second)
+		wg.Done()
 	}()
 
 	defer func() {
