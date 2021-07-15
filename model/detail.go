@@ -16,6 +16,7 @@ type Detail struct {
 		Item   DetailItem   `json:"item"`
 		Status DetailStatus `json:"status"`
 	} `json:"result"`
+	RateLimit *RateLimit
 }
 
 type DetailItem struct {

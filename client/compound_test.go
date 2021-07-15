@@ -7,7 +7,7 @@ import (
 )
 
 func TestCompoundClient_SearchAndGetDetails(t *testing.T) {
-	c := NewCompoundClient("", 100)
+	c := NewCompoundClient("","", 100)
 
 	p := NewSearchParam("T恤男", "", 0, 100, 0, 0, 0)
 
@@ -27,7 +27,7 @@ func TestCompoundClient_SearchAndGetDetails(t *testing.T) {
 }
 
 func TestNewCompoundClient(t *testing.T) {
-	c := NewCompoundClient("", 600)
+	c := NewCompoundClient("", "",600)
 
 	t.Log(c.SearchLimit)
 }

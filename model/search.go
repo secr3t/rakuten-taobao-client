@@ -7,6 +7,7 @@ type Search struct {
 		Status       SearchStatus `json:"status"`
 		PageSize     string       `json:"page_size"`
 	} `json:"result"`
+	RateLimit *RateLimit
 }
 
 type SearchItem struct {
