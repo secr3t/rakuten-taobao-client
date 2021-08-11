@@ -89,7 +89,11 @@ func (i DetailItem) GetDescImgs() []string {
 	var descImgs []string
 
 	for _, descImg := range i.DescImgs {
-		descImgs = append(descImgs, httpsPrefix+descImg)
+		if strings.HasPrefix(descImg, "http") {
+			descImgs = append(descImgs, descImg)
+		} else {
+			descImgs = append(descImgs, httpsPrefix+descImg)
+		}
 	}
 
 	return descImgs
