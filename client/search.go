@@ -5,6 +5,7 @@ import (
 	"github.com/secr3t/rakuten-taobao-client/model"
 	"io/ioutil"
 	"net/http"
+	"sync"
 )
 
 const (
@@ -20,6 +21,48 @@ func NewSearchClient(apiKey string) *SearchClient {
 	return &SearchClient{
 		ApiKey: apiKey,
 	}
+}
+
+func (c *SearchClient) SearchTilLimit(param *SearchParam, limit int) []model.SearchItem {
+	result := c.SearchItems(*param)
+
+	if limit > result.Result.TotalResults {
+		limit = result.Result.TotalResults
+	}
+
+	itemsChain := make(chan model.SearchItem, limit)
+
+	limit -= param.PageSize
+
+	for _, item := range result.Result.Item {
+		itemsChain <- item
+	}
+
+	wg := sync.WaitGroup{}
+
+	for ;limit >0; limit -= param.PageSize {
+		param.Page += 1
+		wg.Add(1)
+		go func() {
+			result = c.SearchItems(*param)
+			for _, item := range result.Result.Item {
+				itemsChain <- item
+			}
+			wg.Done()
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(itemsChain)
+	}()
+
+	items := make([]model.SearchItem, 0)
+	for item := range itemsChain {
+		items = append(items, item)
+	}
+
+	return items
 }
 
 func (c *SearchClient) SearchItems(param SearchParam) model.Search {
